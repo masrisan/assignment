@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assignment Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      background: #f5f6fa;
+      color: #1f2328;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 2rem;
+      color: #1f2328;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1f2328;
+    }
+
+    /* ── Cards ── */
+    .cards {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      flex: 1 1 200px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border-top: 4px solid #e5e7eb;
+    }
+    .card--blue  { border-top-color: #3b82f6; }
+    .card--green { border-top-color: #22c55e; }
+    .card--amber { border-top-color: #f59e0b; }
+
+    .card__label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #57606a;
+      margin-bottom: 0.4rem;
+    }
+
+    .card__value {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 0.25rem;
+    }
+    .card--blue  .card__value { color: #3b82f6; }
+    .card--green .card__value { color: #22c55e; }
+    .card--amber .card__value { color: #f59e0b; }
+
+    .card__detail {
+      font-size: 0.8rem;
+      color: #57606a;
+    }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+
+    .btn--primary { background: #3b82f6; color: #fff; }
+    .btn--danger  { background: #fff; color: #dc2626; border-color: #fca5a5; font-size: 0.78rem; padding: 0.3rem 0.65rem; }
+    .btn--edit    { background: #fff; color: #57606a; border-color: #e5e7eb; font-size: 0.78rem; padding: 0.3rem 0.65rem; }
+    .btn--ghost   { background: transparent; color: #57606a; border-color: #e5e7eb; }
+
+    /* ── Assignment list ── */
+    #assignment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .assignment-row {
+      background: #fff;
+      border-radius: 8px;
+      padding: 0.9rem 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      cursor: pointer;
+      border-left: 4px solid transparent;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .assignment-row:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .assignment-row.active { border-left-color: #3b82f6; }
+
+    .assignment-row__info { flex: 1; }
+    .assignment-row__title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; }
+    .assignment-row__meta  { font-size: 0.78rem; color: #57606a; }
+
+    .assignment-row__actions {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      margin-left: 1rem;
+    }
+
+    .due-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: #f0f9ff;
+      color: #0369a1;
+      white-space: nowrap;
+    }
+    .due-badge--overdue { background: #fef2f2; color: #dc2626; }
+    .due-badge--soon    { background: #fffbeb; color: #b45309; }
+
+    /* ── Form ── */
+    #assignment-form {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      flex: 1 1 180px;
+    }
+
+    .form-field label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #57606a;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .form-field input {
+      padding: 0.45rem 0.7rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: #1f2328;
+      background: #f7f8fa;
+      transition: border-color 0.15s;
+    }
+    .form-field input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      background: #fff;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    #form-error {
+      font-size: 0.82rem;
+      color: #dc2626;
+    }
+
+    /* ── Checklist panel ── */
+    #checklist-section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    #checklist-section h2 { margin-bottom: 0.3rem; }
+
+    #checklist-counter {
+      font-size: 0.82rem;
+      color: #57606a;
+      margin-bottom: 1rem;
+    }
+
+    #checklist-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 7px;
+      transition: background 0.1s;
+    }
+    .checklist-item:hover { background: #f7f8fa; }
+
+    .checklist-item input[type="checkbox"] {
+      width: 1rem;
+      height: 1rem;
+      accent-color: #3b82f6;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .checklist-item__name {
+      flex: 1;
+      font-size: 0.9rem;
+    }
+    .checklist-item__name.done {
+      text-decoration: line-through;
+      color: #57606a;
+    }
+
+    .status-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+    }
+    .status-pill--submitted    { background: #dcfce7; color: #15803d; }
+    .status-pill--not-submitted { background: #f1f5f9; color: #57606a; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: #57606a;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Assignment Tracker</h1>
+
+  <!-- Summary Cards -->
+  <div class="cards">
+    <div class="card card--blue">
+      <p class="card__label">Total Assignments</p>
+      <h2 class="card__value" id="card-total">0</h2>
+      <p class="card__detail" id="card-total-detail">—</p>
+    </div>
+    <div class="card card--green">
+      <p class="card__label">Submission Rate</p>
+      <h2 class="card__value" id="card-rate">0%</h2>
+      <p class="card__detail" id="card-rate-detail">—</p>
+    </div>
+    <div class="card card--amber">
+      <p class="card__label">Due Soon</p>
+      <h2 class="card__value" id="card-due">0</h2>
+      <p class="card__detail" id="card-due-detail">—</p>
+    </div>
+  </div>
+
+  <!-- Assignments Section -->
+  <section id="assignments-section">
+    <div class="section-header">
+      <h2>Assignments</h2>
+      <button class="btn btn--primary" id="new-btn">+ New Assignment</button>
+    </div>
+
+    <!-- Inline Form (hidden by default) -->
+    <div id="assignment-form" hidden>
+      <div class="form-row">
+        <div class="form-field">
+          <label for="field-title">Title</label>
+          <input id="field-title" type="text" placeholder="e.g. Chapter 5 Essay" />
+        </div>
+        <div class="form-field">
+          <label for="field-subject">Subject</label>
+          <input id="field-subject" type="text" placeholder="e.g. English" />
+        </div>
+        <div class="form-field">
+          <label for="field-due">Due Date</label>
+          <input id="field-due" type="date" />
+        </div>
+      </div>
+      <p id="form-error" hidden></p>
+      <div class="form-actions">
+        <button class="btn btn--primary" id="submit-btn">Save Assignment</button>
+        <button class="btn btn--ghost" id="cancel-btn">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Assignment Rows -->
+    <div id="assignment-list"></div>
+  </section>
+
+  <!-- Per-Assignment Checklist (hidden until a row is selected) -->
+  <section id="checklist-section" hidden>
+    <h2 id="checklist-title"></h2>
+    <p id="checklist-counter"></p>
+    <ul id="checklist-list"></ul>
+  </section>
+</div>
+
+<script>
+  /* ── Mock Data ── */
+  let assignments = [
+    {
+      id: 1,
+      title: "Chapter 5 Essay",
+      subject: "English",
+      dueDate: (() => { const d = new Date(); d.setDate(d.getDate() + 3); return d.toISOString().slice(0,10); })(),
+      students: [
+        { name: "Alice Johnson",  submitted: true  },
+        { name: "Brian Lee",      submitted: true  },
+        { name: "Carlos Rivera",  submitted: false },
+        { name: "Diana Chen",     submitted: true  },
+        { name: "Ethan Wright",   submitted: false },
+      ]
+    },
+    {
+      id: 2,
+      title: "Algebra Problem Set 3",
+      subject: "Mathematics",
+      dueDate: (() => { const d = new Date(); d.setDate(d.getDate() + 10); return d.toISOString().slice(0,10); })(),
+      students: [
+        { name: "Alice Johnson",  submitted: true  },
+        { name: "Brian Lee",      submitted: false },
+        { name: "Carlos Rivera",  submitted: true  },
+        { name: "Diana Chen",     submitted: true  },
+        { name: "Ethan Wright",   submitted: true  },
+      ]
+    },
+    {
+      id: 3,
+      title: "Science Lab Report",
+      subject: "Biology",
+      dueDate: (() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0,10); })(),
+      students: [
+        { name: "Alice Johnson",  submitted: true  },
+        { name: "Brian Lee",      submitted: true  },
+        { name: "Carlos Rivera",  submitted: true  },
+        { name: "Diana Chen",     submitted: false },
+        { name: "Ethan Wright",   submitted: false },
+      ]
+    },
+    {
+      id: 4,
+      title: "History Timeline Project",
+      subject: "History",
+      dueDate: (() => { const d = new Date(); d.setDate(d.getDate() + 6); return d.toISOString().slice(0,10); })(),
+      students: [
+        { name: "Alice Johnson",  submitted: false },
+        { name: "Brian Lee",      submitted: false },
+        { name: "Carlos Rivera",  submitted: false },
+        { name: "Diana Chen",     submitted: false },
+        { name: "Ethan Wright",   submitted: false },
+      ]
+    },
+  ];
+
+  let selectedId = null;
+  let editingId  = null;
+
+  /* ── Helpers ── */
+  function dueBadge(dateStr) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const due   = new Date(dateStr);
+    const diff  = Math.round((due - today) / 86400000);
+    if (diff < 0)  return `<span class="due-badge due-badge--overdue">Overdue</span>`;
+    if (diff <= 7) return `<span class="due-badge due-badge--soon">Due in ${diff}d</span>`;
+    return `<span class="due-badge">Due ${due.toLocaleDateString('en-MY', {day:'numeric',month:'short',year:'numeric'})}</span>`;
+  }
+
+  function formatDate(dateStr) {
+    return new Date(dateStr).toLocaleDateString('en-MY', {day:'numeric',month:'short',year:'numeric'});
+  }
+
+  /* ── Render Cards ── */
+  function renderCards() {
+    const total   = assignments.length;
+    const allStu  = assignments.flatMap(a => a.students);
+    const subCount = allStu.filter(s => s.submitted).length;
+    const rate    = allStu.length ? Math.round(subCount / allStu.length * 100) : 0;
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dueSoon = assignments.filter(a => {
+      const diff = Math.round((new Date(a.dueDate) - today) / 86400000);
+      return diff >= 0 && diff <= 7;
+    }).length;
+    const overdue = assignments.filter(a => new Date(a.dueDate) < today).length;
+
+    document.getElementById('card-total').textContent        = total;
+    document.getElementById('card-total-detail').textContent = `${assignments.length} assignment${total !== 1 ? 's' : ''} tracked`;
+
+    document.getElementById('card-rate').textContent        = rate + '%';
+    document.getElementById('card-rate-detail').textContent = `${subCount} of ${allStu.length} students submitted`;
+
+    document.getElementById('card-due').textContent        = dueSoon;
+    document.getElementById('card-due-detail').textContent =
+      overdue > 0 ? `${overdue} overdue` : (dueSoon > 0 ? 'within next 7 days' : 'nothing due soon');
+
+    // colour the due card value red if any overdue
+    document.getElementById('card-due').style.color = overdue > 0 ? '#dc2626' : '';
+  }
+
+  /* ── Render Assignment List ── */
+  function renderAssignments() {
+    const list = document.getElementById('assignment-list');
+    if (!assignments.length) {
+      list.innerHTML = '<div class="empty-state">No assignments yet. Click <strong>+ New Assignment</strong> to add one.</div>';
+      return;
+    }
+    list.innerHTML = assignments.map(a => {
+      const submitted = a.students.filter(s => s.submitted).length;
+      const isActive  = a.id === selectedId;
+      return `
+        <div class="assignment-row${isActive ? ' active' : ''}" data-id="${a.id}">
+          <div class="assignment-row__info">
+            <div class="assignment-row__title">${escHtml(a.title)}</div>
+            <div class="assignment-row__meta">${escHtml(a.subject)} &nbsp;·&nbsp; ${submitted}/${a.students.length} submitted</div>
+          </div>
+          <div class="assignment-row__actions">
+            ${dueBadge(a.dueDate)}
+            <button class="btn btn--edit" data-edit="${a.id}">Edit</button>
+            <button class="btn btn--danger" data-del="${a.id}">Delete</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    // row click → select
+    list.querySelectorAll('.assignment-row').forEach(row => {
+      row.addEventListener('click', e => {
+        if (e.target.closest('[data-edit]') || e.target.closest('[data-del]')) return;
+        selectedId = Number(row.dataset.id);
+        renderAssignments();
+        renderChecklist(selectedId);
+      });
+    });
+
+    // edit click
+    list.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => openForm(assignments.find(a => a.id === Number(btn.dataset.edit))));
+    });
+
+    // delete click
+    list.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.del);
+        assignments = assignments.filter(a => a.id !== id);
+        if (selectedId === id) {
+          selectedId = null;
+          document.getElementById('checklist-section').hidden = true;
+        }
+        renderAssignments();
+        renderCards();
+      });
+    });
+  }
+
+  /* ── Render Checklist ── */
+  function renderChecklist(id) {
+    const a = assignments.find(x => x.id === id);
+    if (!a) return;
+    const section = document.getElementById('checklist-section');
+    section.hidden = false;
+    document.getElementById('checklist-title').textContent = a.title + ' — Students';
+    const submitted = a.students.filter(s => s.submitted).length;
+    document.getElementById('checklist-counter').textContent =
+      `${submitted} of ${a.students.length} student${a.students.length !== 1 ? 's' : ''} submitted`;
+
+    const ul = document.getElementById('checklist-list');
+    ul.innerHTML = a.students.map((s, i) => `
+      <li class="checklist-item">
+        <input type="checkbox" id="stu-${id}-${i}" ${s.submitted ? 'checked' : ''} data-aid="${id}" data-idx="${i}" />
+        <span class="checklist-item__name${s.submitted ? ' done' : ''}">${escHtml(s.name)}</span>
+        <span class="status-pill ${s.submitted ? 'status-pill--submitted' : 'status-pill--not-submitted'}">
+          ${s.submitted ? 'Submitted' : 'Not submitted'}
+        </span>
+      </li>`).join('');
+
+    ul.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const aid = Number(cb.dataset.aid);
+        const idx = Number(cb.dataset.idx);
+        const asgn = assignments.find(x => x.id === aid);
+        asgn.students[idx].submitted = cb.checked;
+        renderChecklist(aid);
+        renderCards();
+        renderAssignments();
+      });
+    });
+  }
+
+  /* ── Form Logic ── */
+  function openForm(assignment) {
+    editingId = assignment ? assignment.id : null;
+    document.getElementById('field-title').value   = assignment ? assignment.title   : '';
+    document.getElementById('field-subject').value = assignment ? assignment.subject : '';
+    document.getElementById('field-due').value     = assignment ? assignment.dueDate : '';
+    document.getElementById('form-error').hidden   = true;
+    document.getElementById('assignment-form').hidden = false;
+    document.getElementById('field-title').focus();
+  }
+
+  function closeForm() {
+    document.getElementById('assignment-form').hidden = true;
+    editingId = null;
+  }
+
+  function submitForm() {
+    const title   = document.getElementById('field-title').value.trim();
+    const subject = document.getElementById('field-subject').value.trim();
+    const dueDate = document.getElementById('field-due').value;
+    const errEl   = document.getElementById('form-error');
+
+    if (!title || !dueDate) {
+      errEl.textContent = 'Title and Due Date are required.';
+      errEl.hidden = false;
+      return;
+    }
+    errEl.hidden = true;
+
+    if (editingId !== null) {
+      const a = assignments.find(x => x.id === editingId);
+      a.title   = title;
+      a.subject = subject;
+      a.dueDate = dueDate;
+      if (selectedId === editingId) renderChecklist(editingId);
+    } else {
+      assignments.push({
+        id: Date.now(),
+        title,
+        subject,
+        dueDate,
+        students: [
+          { name: 'Student 1', submitted: false },
+          { name: 'Student 2', submitted: false },
+          { name: 'Student 3', submitted: false },
+          { name: 'Student 4', submitted: false },
+          { name: 'Student 5', submitted: false },
+        ]
+      });
+    }
+
+    closeForm();
+    renderAssignments();
+    renderCards();
+  }
+
+  /* ── XSS guard ── */
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Event wiring ── */
+  document.getElementById('new-btn').addEventListener('click', () => openForm());
+  document.getElementById('submit-btn').addEventListener('click', submitForm);
+  document.getElementById('cancel-btn').addEventListener('click', closeForm);
+
+  /* ── Boot ── */
+  renderCards();
+  renderAssignments();
+</script>
+</body>
+</html>
